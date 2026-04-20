@@ -1,0 +1,1280 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Calculadora del PIB - Método del Gasto</title>
+        <style>
+            /* ===== VARIABLES Y RESET ===== */
+            :root {
+                --azul-oscuro: #0d1b2a;
+                --azul-medio: #1b3a5c;
+                --azul-claro: #2563eb;
+                --azul-acento: #3b82f6;
+                --azul-suave: #dbeafe;
+                --blanco: #ffffff;
+                --gris-claro: #f1f5f9;
+                --gris-medio: #94a3b8;
+                --gris-oscuro: #334155;
+                --verde: #10b981;
+                --rojo: #ef4444;
+                --sombra: 0 4px 24px rgba(13, 27, 42, 0.15);
+                --sombra-hover: 0 8px 32px rgba(37, 99, 235, 0.25);
+                --radio: 16px;
+                --radio-sm: 10px;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    "Segoe UI",
+                    system-ui,
+                    -apple-system,
+                    sans-serif;
+                background: linear-gradient(
+                    135deg,
+                    var(--azul-oscuro) 0%,
+                    #162032 50%,
+                    #0f2540 100%
+                );
+                min-height: 100vh;
+                color: var(--blanco);
+                padding: 20px;
+            }
+
+            /* ===== CONTENEDOR PRINCIPAL ===== */
+            .contenedor {
+                max-width: 900px;
+                margin: 0 auto;
+            }
+
+            /* ===== ENCABEZADO ===== */
+            .encabezado {
+                text-align: center;
+                padding: 50px 20px 40px;
+                animation: deslizarArriba 0.7s ease-out;
+            }
+
+            .encabezado .badge {
+                display: inline-block;
+                background: rgba(59, 130, 246, 0.2);
+                border: 1px solid rgba(59, 130, 246, 0.4);
+                color: var(--azul-acento);
+                font-size: 0.75rem;
+                font-weight: 600;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                padding: 6px 16px;
+                border-radius: 100px;
+                margin-bottom: 20px;
+            }
+
+            .encabezado h1 {
+                font-size: clamp(1.8rem, 5vw, 3rem);
+                font-weight: 800;
+                line-height: 1.2;
+                margin-bottom: 12px;
+                background: linear-gradient(135deg, #fff 30%, #93c5fd);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .encabezado p {
+                color: var(--gris-medio);
+                font-size: 1rem;
+                max-width: 500px;
+                margin: 0 auto;
+                line-height: 1.6;
+            }
+
+            /* ===== FÓRMULA DESTACADA ===== */
+            .formula-banner {
+                background: linear-gradient(135deg, var(--azul-medio), #1e3a5f);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: var(--radio);
+                padding: 24px 32px;
+                text-align: center;
+                margin-bottom: 28px;
+                animation: deslizarArriba 0.8s ease-out;
+            }
+
+            .formula-banner .label {
+                font-size: 0.8rem;
+                color: var(--gris-medio);
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+            }
+
+            .formula-banner .formula {
+                font-size: clamp(1.2rem, 4vw, 1.8rem);
+                font-weight: 700;
+                color: var(--blanco);
+                letter-spacing: 1px;
+            }
+
+            .formula-banner .formula span {
+                color: var(--azul-acento);
+            }
+
+            /* ===== TARJETAS (CARDS) ===== */
+            .card {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: var(--radio);
+                padding: 28px;
+                margin-bottom: 24px;
+                transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease;
+                animation: deslizarArriba 0.9s ease-out;
+            }
+
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--sombra-hover);
+            }
+
+            .card-titulo {
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .card-titulo .icono {
+                width: 36px;
+                height: 36px;
+                background: linear-gradient(
+                    135deg,
+                    var(--azul-claro),
+                    var(--azul-acento)
+                );
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+
+            /* ===== GRILLA DE CAMPOS ===== */
+            .grilla-campos {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 20px;
+            }
+
+            /* ===== GRUPOS DE INPUT ===== */
+            .grupo-input {
+                position: relative;
+            }
+
+            .grupo-input label {
+                display: block;
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: var(--gris-medio);
+                margin-bottom: 8px;
+                letter-spacing: 0.5px;
+            }
+
+            .grupo-input label .letra-variable {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+                background: var(--azul-claro);
+                color: white;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-weight: 800;
+                margin-right: 6px;
+            }
+
+            .input-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .input-prefix {
+                position: absolute;
+                left: 14px;
+                color: var(--azul-acento);
+                font-weight: 700;
+                font-size: 1rem;
+                pointer-events: none;
+                z-index: 1;
+            }
+
+            .grupo-input input {
+                width: 100%;
+                background: rgba(255, 255, 255, 0.07);
+                border: 1.5px solid rgba(255, 255, 255, 0.12);
+                border-radius: var(--radio-sm);
+                padding: 14px 14px 14px 36px;
+                color: var(--blanco);
+                font-size: 1rem;
+                font-weight: 500;
+                transition:
+                    border-color 0.3s ease,
+                    background 0.3s ease,
+                    box-shadow 0.3s ease;
+                outline: none;
+                -moz-appearance: textfield;
+            }
+
+            .grupo-input input::-webkit-outer-spin-button,
+            .grupo-input input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+            }
+
+            .grupo-input input::placeholder {
+                color: rgba(148, 163, 184, 0.5);
+                font-weight: 400;
+            }
+
+            .grupo-input input:focus {
+                border-color: var(--azul-acento);
+                background: rgba(59, 130, 246, 0.1);
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            }
+
+            .grupo-input input.error-campo {
+                border-color: var(--rojo);
+                background: rgba(239, 68, 68, 0.08);
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+            }
+
+            .mensaje-error-campo {
+                font-size: 0.75rem;
+                color: var(--rojo);
+                margin-top: 6px;
+                display: none;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .mensaje-error-campo.visible {
+                display: flex;
+            }
+
+            /* ===== BOTÓN ===== */
+            .btn-calcular {
+                width: 100%;
+                padding: 18px;
+                background: linear-gradient(
+                    135deg,
+                    var(--azul-claro) 0%,
+                    #1d4ed8 100%
+                );
+                color: white;
+                border: none;
+                border-radius: var(--radio-sm);
+                font-size: 1.05rem;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: 8px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .btn-calcular::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.15),
+                    transparent
+                );
+                transition: left 0.5s ease;
+            }
+
+            .btn-calcular:hover::before {
+                left: 100%;
+            }
+
+            .btn-calcular:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+            }
+
+            .btn-calcular:active {
+                transform: translateY(0);
+            }
+
+            .btn-calcular:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            /* ===== MENSAJE DE ERROR GENERAL ===== */
+            .alerta-error {
+                background: rgba(239, 68, 68, 0.12);
+                border: 1px solid rgba(239, 68, 68, 0.4);
+                border-radius: var(--radio-sm);
+                padding: 14px 18px;
+                color: #fca5a5;
+                font-size: 0.9rem;
+                margin-top: 16px;
+                display: none;
+                align-items: center;
+                gap: 10px;
+                animation: aparecer 0.3s ease;
+            }
+
+            .alerta-error.visible {
+                display: flex;
+            }
+
+            /* ===== RESULTADO ===== */
+            .resultado-contenedor {
+                display: none;
+                animation: aparecer 0.5s ease;
+            }
+
+            .resultado-contenedor.visible {
+                display: block;
+            }
+
+            .resultado-principal {
+                background: linear-gradient(135deg, #1a3a5c 0%, #0d2a45 100%);
+                border: 1px solid rgba(59, 130, 246, 0.4);
+                border-radius: var(--radio);
+                padding: 36px;
+                text-align: center;
+                margin-bottom: 24px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .resultado-principal::before {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(
+                    circle,
+                    rgba(59, 130, 246, 0.08) 0%,
+                    transparent 60%
+                );
+                pointer-events: none;
+            }
+
+            .resultado-principal .label-resultado {
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--gris-medio);
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                margin-bottom: 12px;
+            }
+
+            .resultado-principal .valor-pib {
+                font-size: clamp(2rem, 6vw, 3.5rem);
+                font-weight: 900;
+                color: var(--blanco);
+                margin-bottom: 8px;
+                position: relative;
+            }
+
+            .resultado-principal .valor-pib .signo {
+                color: var(--verde);
+            }
+
+            .resultado-principal .subtexto {
+                color: var(--gris-medio);
+                font-size: 0.9rem;
+            }
+
+            /* ===== PASOS DEL CÁLCULO ===== */
+            .pasos-titulo {
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin-bottom: 20px;
+                color: var(--blanco);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .paso {
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                padding: 16px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+                opacity: 0;
+                transform: translateX(-10px);
+                transition:
+                    opacity 0.4s ease,
+                    transform 0.4s ease;
+            }
+
+            .paso.animado {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            .paso:last-child {
+                border-bottom: none;
+            }
+
+            .paso-numero {
+                width: 32px;
+                height: 32px;
+                background: linear-gradient(
+                    135deg,
+                    var(--azul-claro),
+                    var(--azul-acento)
+                );
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+
+            .paso-contenido {
+                flex: 1;
+            }
+
+            .paso-descripcion {
+                font-size: 0.9rem;
+                color: var(--gris-medio);
+                margin-bottom: 4px;
+            }
+
+            .paso-calculo {
+                font-size: 1rem;
+                font-weight: 600;
+                color: var(--blanco);
+                font-family: "Courier New", monospace;
+            }
+
+            .paso-calculo .resultado-paso {
+                color: var(--azul-acento);
+            }
+
+            /* ===== SECCIÓN EXPLICATIVA ===== */
+            .seccion-explicacion {
+                margin-top: 32px;
+                animation: deslizarArriba 1s ease-out;
+            }
+
+            .tabs {
+                display: flex;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: var(--radio-sm);
+                padding: 4px;
+                margin-bottom: 20px;
+                gap: 4px;
+            }
+
+            .tab-btn {
+                flex: 1;
+                padding: 10px;
+                background: transparent;
+                border: none;
+                border-radius: 8px;
+                color: var(--gris-medio);
+                font-size: 0.85rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .tab-btn.activo {
+                background: var(--azul-claro);
+                color: white;
+            }
+
+            .tab-btn:hover:not(.activo) {
+                color: var(--blanco);
+                background: rgba(255, 255, 255, 0.08);
+            }
+
+            .tab-contenido {
+                display: none;
+                animation: aparecer 0.4s ease;
+            }
+
+            .tab-contenido.activo {
+                display: block;
+            }
+
+            .definicion-pib {
+                color: rgba(255, 255, 255, 0.85);
+                line-height: 1.8;
+                font-size: 0.95rem;
+            }
+
+            .definicion-pib p {
+                margin-bottom: 14px;
+            }
+
+            /* ===== TABLA DE COMPONENTES ===== */
+            .tabla-componentes {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.9rem;
+            }
+
+            .tabla-componentes thead th {
+                padding: 12px 16px;
+                text-align: left;
+                background: rgba(59, 130, 246, 0.15);
+                color: var(--azul-acento);
+                font-weight: 600;
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+            }
+
+            .tabla-componentes thead th:first-child {
+                border-radius: 8px 0 0 8px;
+            }
+
+            .tabla-componentes thead th:last-child {
+                border-radius: 0 8px 8px 0;
+            }
+
+            .tabla-componentes tbody tr {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                transition: background 0.2s ease;
+            }
+
+            .tabla-componentes tbody tr:hover {
+                background: rgba(255, 255, 255, 0.04);
+            }
+
+            .tabla-componentes tbody td {
+                padding: 14px 16px;
+                color: rgba(255, 255, 255, 0.8);
+                vertical-align: top;
+            }
+
+            .tabla-componentes .var-chip {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                background: var(--azul-claro);
+                color: white;
+                border-radius: 8px;
+                font-weight: 800;
+                font-size: 0.85rem;
+            }
+
+            /* ===== FOOTER ===== */
+            .footer {
+                text-align: center;
+                padding: 30px 20px;
+                color: rgba(148, 163, 184, 0.5);
+                font-size: 0.8rem;
+            }
+
+            /* ===== ANIMACIONES ===== */
+            @keyframes deslizarArriba {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes aparecer {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            @keyframes contarNumero {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            /* ===== RESPONSIVE ===== */
+            @media (max-width: 600px) {
+                body {
+                    padding: 12px;
+                }
+
+                .encabezado {
+                    padding: 30px 12px 24px;
+                }
+
+                .card {
+                    padding: 20px;
+                }
+
+                .formula-banner {
+                    padding: 18px 20px;
+                }
+
+                .tabs {
+                    flex-direction: column;
+                }
+
+                .resultado-principal {
+                    padding: 24px 20px;
+                }
+
+                .grilla-campos {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="contenedor">
+            <!-- ENCABEZADO -->
+            <header class="encabezado">
+                <div class="badge">Economía · Proyecto Escolar</div>
+                <h1>Calculadora del PIB</h1>
+                <p>
+                    Calcula el Producto Interno Bruto usando el método del gasto
+                    de forma rápida y sencilla.
+                </p>
+            </header>
+
+            <!-- FÓRMULA BANNER -->
+            <div class="formula-banner">
+                <div class="label">Fórmula del método del gasto</div>
+                <div class="formula">
+                    <span>PIB</span> = C + I + G + (<span>X</span> −
+                    <span>M</span>)
+                </div>
+            </div>
+
+            <!-- TARJETA: CALCULADORA -->
+            <div class="card">
+                <div class="card-titulo">
+                    <div class="icono">🧮</div>
+                    Ingresa los valores
+                </div>
+
+                <div class="grilla-campos">
+                    <!-- Campo: Consumo -->
+                    <div class="grupo-input">
+                        <label for="consumo">
+                            <span class="letra-variable">C</span>
+                            Consumo privado
+                        </label>
+                        <div class="input-wrapper">
+                            <span class="input-prefix">$</span>
+                            <input
+                                type="number"
+                                id="consumo"
+                                placeholder="Ej: 500000"
+                                min="0"
+                                step="any"
+                                aria-describedby="error-consumo"
+                            />
+                        </div>
+                        <div class="mensaje-error-campo" id="error-consumo">
+                            ⚠ Este campo es obligatorio
+                        </div>
+                    </div>
+
+                    <!-- Campo: Inversión -->
+                    <div class="grupo-input">
+                        <label for="inversion">
+                            <span class="letra-variable">I</span>
+                            Inversión privada
+                        </label>
+                        <div class="input-wrapper">
+                            <span class="input-prefix">$</span>
+                            <input
+                                type="number"
+                                id="inversion"
+                                placeholder="Ej: 200000"
+                                min="0"
+                                step="any"
+                                aria-describedby="error-inversion"
+                            />
+                        </div>
+                        <div class="mensaje-error-campo" id="error-inversion">
+                            ⚠ Este campo es obligatorio
+                        </div>
+                    </div>
+
+                    <!-- Campo: Gasto público -->
+                    <div class="grupo-input">
+                        <label for="gasto">
+                            <span class="letra-variable">G</span>
+                            Gasto público
+                        </label>
+                        <div class="input-wrapper">
+                            <span class="input-prefix">$</span>
+                            <input
+                                type="number"
+                                id="gasto"
+                                placeholder="Ej: 300000"
+                                min="0"
+                                step="any"
+                                aria-describedby="error-gasto"
+                            />
+                        </div>
+                        <div class="mensaje-error-campo" id="error-gasto">
+                            ⚠ Este campo es obligatorio
+                        </div>
+                    </div>
+
+                    <!-- Campo: Exportaciones -->
+                    <div class="grupo-input">
+                        <label for="exportaciones">
+                            <span class="letra-variable">X</span>
+                            Exportaciones
+                        </label>
+                        <div class="input-wrapper">
+                            <span class="input-prefix">$</span>
+                            <input
+                                type="number"
+                                id="exportaciones"
+                                placeholder="Ej: 150000"
+                                min="0"
+                                step="any"
+                                aria-describedby="error-exportaciones"
+                            />
+                        </div>
+                        <div
+                            class="mensaje-error-campo"
+                            id="error-exportaciones"
+                        >
+                            ⚠ Este campo es obligatorio
+                        </div>
+                    </div>
+
+                    <!-- Campo: Importaciones -->
+                    <div class="grupo-input">
+                        <label for="importaciones">
+                            <span class="letra-variable">M</span>
+                            Importaciones
+                        </label>
+                        <div class="input-wrapper">
+                            <span class="input-prefix">$</span>
+                            <input
+                                type="number"
+                                id="importaciones"
+                                placeholder="Ej: 100000"
+                                min="0"
+                                step="any"
+                                aria-describedby="error-importaciones"
+                            />
+                        </div>
+                        <div
+                            class="mensaje-error-campo"
+                            id="error-importaciones"
+                        >
+                            ⚠ Este campo es obligatorio
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón -->
+                <button
+                    class="btn-calcular"
+                    id="btn-calcular"
+                    onclick="calcularPIB()"
+                >
+                    Calcular PIB
+                </button>
+
+                <!-- Alerta de error general -->
+                <div class="alerta-error" id="alerta-error">
+                    <span>❌</span>
+                    <span id="texto-error"
+                        >Por favor, completa todos los campos
+                        correctamente.</span
+                    >
+                </div>
+            </div>
+
+            <!-- RESULTADO -->
+            <div class="resultado-contenedor" id="resultado-contenedor">
+                <!-- Resultado principal -->
+                <div class="resultado-principal">
+                    <div class="label-resultado">Resultado calculado</div>
+                    <div class="valor-pib" id="valor-pib">
+                        <span class="signo">$</span
+                        ><span id="numero-pib">0</span>
+                    </div>
+                    <div class="subtexto">
+                        Producto Interno Bruto · Método del Gasto
+                    </div>
+                </div>
+
+                <!-- Pasos del cálculo -->
+                <div class="card">
+                    <div class="pasos-titulo">
+                        <span>📋</span> Paso a paso del cálculo
+                    </div>
+                    <div id="pasos-contenedor"></div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: EXPLICACIÓN -->
+            <div class="seccion-explicacion">
+                <div class="card">
+                    <div class="card-titulo">
+                        <div class="icono">📚</div>
+                        ¿Qué es el PIB?
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="tabs">
+                        <button
+                            class="tab-btn activo"
+                            onclick="cambiarTab('definicion', this)"
+                        >
+                            Definición
+                        </button>
+                        <button
+                            class="tab-btn"
+                            onclick="cambiarTab('formula', this)"
+                        >
+                            La fórmula
+                        </button>
+                        <button
+                            class="tab-btn"
+                            onclick="cambiarTab('componentes', this)"
+                        >
+                            Componentes
+                        </button>
+                    </div>
+
+                    <!-- Tab: Definición -->
+                    <div class="tab-contenido activo" id="tab-definicion">
+                        <div class="definicion-pib">
+                            <p>
+                                El
+                                <strong>Producto Interno Bruto (PIB)</strong> es
+                                el valor total de todos los bienes y servicios
+                                finales producidos dentro de un país durante un
+                                período determinado (generalmente un año o
+                                trimestre).
+                            </p>
+                            <p>
+                                Es el indicador económico más importante para
+                                medir el tamaño y el crecimiento de una
+                                economía. Un PIB creciente generalmente indica
+                                que la economía está prosperando; uno que
+                                disminuye puede señalar una recesión.
+                            </p>
+                            <p>
+                                <strong>Ejemplo sencillo:</strong> Si en un país
+                                se producen zapatos, se ofrecen servicios
+                                médicos y se construyen casas durante el año, el
+                                valor total de todo eso es el PIB.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Fórmula -->
+                    <div class="tab-contenido" id="tab-formula">
+                        <div class="definicion-pib">
+                            <p>
+                                El <strong>método del gasto</strong> es la forma
+                                más común de calcular el PIB. Suma todo lo que
+                                se gasta en bienes y servicios finales en la
+                                economía:
+                            </p>
+                            <p
+                                style="
+                                    background: rgba(59, 130, 246, 0.12);
+                                    border: 1px solid rgba(59, 130, 246, 0.3);
+                                    border-radius: 10px;
+                                    padding: 16px;
+                                    font-family: monospace;
+                                    font-size: 1.05rem;
+                                    text-align: center;
+                                    color: #93c5fd;
+                                    margin: 16px 0;
+                                "
+                            >
+                                PIB = C + I + G + (X − M)
+                            </p>
+                            <p>
+                                Cada letra representa un componente distinto del
+                                gasto total de la economía. Al sumarlos,
+                                obtenemos el valor total de la producción del
+                                país.
+                            </p>
+                            <p>
+                                El término <strong>(X − M)</strong> se llama
+                                <em>exportaciones netas</em> o
+                                <em>balanza comercial</em>. Si X &gt; M, el país
+                                exporta más de lo que importa (superávit
+                                comercial). Si M &gt; X, importa más (déficit
+                                comercial).
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Componentes -->
+                    <div class="tab-contenido" id="tab-componentes">
+                        <table class="tabla-componentes">
+                            <thead>
+                                <tr>
+                                    <th>Variable</th>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                    <th>Ejemplos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="var-chip">C</span></td>
+                                    <td><strong>Consumo</strong></td>
+                                    <td>
+                                        Gasto de los hogares en bienes y
+                                        servicios.
+                                    </td>
+                                    <td>
+                                        Alimentos, ropa, entretenimiento,
+                                        transporte.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="var-chip">I</span></td>
+                                    <td><strong>Inversión</strong></td>
+                                    <td>
+                                        Gasto de empresas en bienes de capital y
+                                        construcción.
+                                    </td>
+                                    <td>
+                                        Maquinaria, fábricas, viviendas nuevas.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="var-chip">G</span></td>
+                                    <td><strong>Gasto público</strong></td>
+                                    <td>
+                                        Gasto del gobierno en bienes y
+                                        servicios.
+                                    </td>
+                                    <td>
+                                        Educación, defensa, infraestructura,
+                                        salud pública.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="var-chip">X</span></td>
+                                    <td><strong>Exportaciones</strong></td>
+                                    <td>
+                                        Bienes y servicios vendidos al
+                                        extranjero.
+                                    </td>
+                                    <td>
+                                        Café, petróleo, software, turismo
+                                        recibido.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="var-chip">M</span></td>
+                                    <td><strong>Importaciones</strong></td>
+                                    <td>
+                                        Bienes y servicios comprados del
+                                        extranjero (se restan).
+                                    </td>
+                                    <td>
+                                        Electrónicos, vehículos, materias primas
+                                        importadas.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <footer class="footer">
+                Proyecto escolar · Economía · Calculadora del PIB por Método del
+                Gasto
+            </footer>
+        </div>
+
+        <script>
+            // ===== LÓGICA DE TABS =====
+            function cambiarTab(nombre, boton) {
+                // Ocultar todos los contenidos
+                document
+                    .querySelectorAll(".tab-contenido")
+                    .forEach((tab) => tab.classList.remove("activo"));
+                // Desactivar todos los botones
+                document
+                    .querySelectorAll(".tab-btn")
+                    .forEach((btn) => btn.classList.remove("activo"));
+                // Mostrar el contenido seleccionado
+                document
+                    .getElementById("tab-" + nombre)
+                    .classList.add("activo");
+                // Activar el botón presionado
+                boton.classList.add("activo");
+            }
+
+            // ===== FORMATEAR NÚMERO =====
+            function formatearNumero(numero) {
+                // Mostrar con separadores de miles y 2 decimales si los hay
+                return numero.toLocaleString("es-MX", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                });
+            }
+
+            // ===== LIMPIAR ERRORES =====
+            function limpiarErrores() {
+                // Quitar clases de error de todos los inputs
+                document.querySelectorAll("input").forEach((input) => {
+                    input.classList.remove("error-campo");
+                });
+                // Ocultar mensajes de error individuales
+                document
+                    .querySelectorAll(".mensaje-error-campo")
+                    .forEach((msg) => {
+                        msg.classList.remove("visible");
+                    });
+                // Ocultar alerta general
+                document
+                    .getElementById("alerta-error")
+                    .classList.remove("visible");
+            }
+
+            // ===== VALIDAR UN CAMPO =====
+            function validarCampo(id, errorId) {
+                const input = document.getElementById(id);
+                const errorDiv = document.getElementById(errorId);
+                const valor = input.value.trim();
+
+                if (valor === "") {
+                    // Campo vacío
+                    input.classList.add("error-campo");
+                    errorDiv.textContent = "⚠ Este campo es obligatorio";
+                    errorDiv.classList.add("visible");
+                    return null;
+                }
+
+                const numero = parseFloat(valor);
+
+                if (isNaN(numero)) {
+                    // No es un número válido
+                    input.classList.add("error-campo");
+                    errorDiv.textContent = "⚠ Ingresa un número válido";
+                    errorDiv.classList.add("visible");
+                    return null;
+                }
+
+                if (numero < 0) {
+                    // Número negativo no permitido
+                    input.classList.add("error-campo");
+                    errorDiv.textContent = "⚠ El valor no puede ser negativo";
+                    errorDiv.classList.add("visible");
+                    return null;
+                }
+
+                // Campo válido
+                input.classList.remove("error-campo");
+                errorDiv.classList.remove("visible");
+                return numero;
+            }
+
+            // ===== ANIMAR PASOS =====
+            function animarPasos() {
+                const pasos = document.querySelectorAll(".paso");
+                pasos.forEach((paso, indice) => {
+                    // Escalonar la animación de cada paso
+                    setTimeout(() => {
+                        paso.classList.add("animado");
+                    }, indice * 150);
+                });
+            }
+
+            // ===== CALCULAR PIB =====
+            function calcularPIB() {
+                // 1. Limpiar errores previos
+                limpiarErrores();
+
+                // 2. Validar todos los campos
+                const C = validarCampo("consumo", "error-consumo");
+                const I = validarCampo("inversion", "error-inversion");
+                const G = validarCampo("gasto", "error-gasto");
+                const X = validarCampo("exportaciones", "error-exportaciones");
+                const M = validarCampo("importaciones", "error-importaciones");
+
+                // 3. Si algún campo es inválido, mostrar error general y detener
+                if (
+                    C === null ||
+                    I === null ||
+                    G === null ||
+                    X === null ||
+                    M === null
+                ) {
+                    const alerta = document.getElementById("alerta-error");
+                    document.getElementById("texto-error").textContent =
+                        "Por favor, completa todos los campos correctamente antes de calcular.";
+                    alerta.classList.add("visible");
+                    return;
+                }
+
+                // 4. Calcular componentes
+                const exportacionesNetas = X - M; // Balanza comercial
+                const PIB = C + I + G + exportacionesNetas; // Fórmula final
+
+                // 5. Mostrar resultado con animación
+                const resultadoContenedor = document.getElementById(
+                    "resultado-contenedor",
+                );
+                resultadoContenedor.classList.remove("visible");
+
+                // Pequeña pausa para reiniciar animación si se recalcula
+                setTimeout(() => {
+                    resultadoContenedor.classList.add("visible");
+
+                    // Mostrar el valor del PIB
+                    document.getElementById("numero-pib").textContent =
+                        formatearNumero(PIB);
+
+                    // Construir pasos del cálculo
+                    const pasosContenedor =
+                        document.getElementById("pasos-contenedor");
+                    pasosContenedor.innerHTML = "";
+
+                    // Definir los pasos a mostrar
+                    const pasos = [
+                        {
+                            descripcion: "Consumo privado (C)",
+                            calculo: `C = $${formatearNumero(C)}`,
+                            resultado: formatearNumero(C),
+                        },
+                        {
+                            descripcion: "Inversión privada (I)",
+                            calculo: `I = $${formatearNumero(I)}`,
+                            resultado: formatearNumero(I),
+                        },
+                        {
+                            descripcion: "Gasto público del gobierno (G)",
+                            calculo: `G = $${formatearNumero(G)}`,
+                            resultado: formatearNumero(G),
+                        },
+                        {
+                            descripcion: "Exportaciones netas = X − M",
+                            calculo: `$${formatearNumero(X)} − $${formatearNumero(M)} = $${formatearNumero(exportacionesNetas)}`,
+                            resultado: formatearNumero(exportacionesNetas),
+                            esBalanza: true,
+                        },
+                        {
+                            descripcion:
+                                "Suma total: PIB = C + I + G + (X − M)",
+                            calculo: `$${formatearNumero(C)} + $${formatearNumero(I)} + $${formatearNumero(G)} + ($${formatearNumero(exportacionesNetas)})`,
+                            resultado: formatearNumero(PIB),
+                            esFinal: true,
+                        },
+                    ];
+
+                    // Crear cada paso
+                    pasos.forEach((paso, indice) => {
+                        const div = document.createElement("div");
+                        div.className = "paso";
+
+                        // Color del resultado según si es el paso final
+                        const colorResultado = paso.esFinal
+                            ? "#60a5fa"
+                            : paso.esBalanza && exportacionesNetas < 0
+                              ? "#f87171"
+                              : "#34d399";
+
+                        div.innerHTML = `
+                    <div class="paso-numero">${indice + 1}</div>
+                    <div class="paso-contenido">
+                        <div class="paso-descripcion">${paso.descripcion}</div>
+                        <div class="paso-calculo">
+                            ${paso.calculo}
+                            ${paso.esFinal ? `<br>= <span class="resultado-paso" style="color:${colorResultado}; font-size: 1.05rem;">$${paso.resultado}</span>` : ""}
+                        </div>
+                    </div>
+                `;
+                        pasosContenedor.appendChild(div);
+                    });
+
+                    // Animar los pasos uno por uno
+                    animarPasos();
+
+                    // 6. Hacer scroll suave hacia el resultado
+                    setTimeout(() => {
+                        resultadoContenedor.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                        });
+                    }, 100);
+                }, 50);
+            }
+
+            // ===== PERMITIR CALCULAR CON ENTER =====
+            document.addEventListener("keydown", function (evento) {
+                // Si se presiona Enter en cualquier input, calcular
+                if (evento.key === "Enter") {
+                    calcularPIB();
+                }
+            });
+
+            // ===== LIMPIAR ERROR DE CAMPO AL ESCRIBIR =====
+            document.querySelectorAll("input").forEach((input) => {
+                input.addEventListener("input", function () {
+                    // Limpiar error visual del campo que se está editando
+                    this.classList.remove("error-campo");
+                    const errorId = "error-" + this.id;
+                    const errorDiv = document.getElementById(errorId);
+                    if (errorDiv) {
+                        errorDiv.classList.remove("visible");
+                    }
+                    // Ocultar alerta general si todos los campos tienen algo
+                    const todosConValor = Array.from(
+                        document.querySelectorAll("input"),
+                    ).every((inp) => inp.value.trim() !== "");
+                    if (todosConValor) {
+                        document
+                            .getElementById("alerta-error")
+                            .classList.remove("visible");
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
